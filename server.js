@@ -113,11 +113,12 @@ app.get('/view/:fileId', (req, res) => {
                 background: #000;
                 min-height: 100vh;
                 display: flex;
-                align-items: center;
+                align-items: flex-start;
                 justify-content: center;
                 padding: 20px;
                 position: relative;
-                overflow: hidden;
+                overflow-y: auto;
+                margin: 0;
             }
             /* Custom font import */
             @font-face {
@@ -138,6 +139,7 @@ app.get('/view/:fileId', (req, res) => {
                 position: relative;
                 z-index: 10;
                 backdrop-filter: blur(5px);
+                margin-top: 20px;
             }
             .header {
                 text-align: center;
@@ -216,14 +218,14 @@ app.get('/view/:fileId', (req, res) => {
             }
             img, video, audio {
                 max-width: 100%;
-                max-height: 50vh;
+                max-height: 40vh;
                 border-radius: 8px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             }
             video {
                 width: 100%;
                 height: auto;
-                max-height: 50vh;
+                max-height: 40vh;
                 object-fit: contain;
             }
             video::-webkit-media-controls-panel {
