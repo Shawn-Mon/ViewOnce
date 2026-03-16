@@ -216,9 +216,48 @@ app.get('/view/:fileId', (req, res) => {
             }
             img, video, audio {
                 max-width: 100%;
-                max-height: 70vh;
+                max-height: 50vh;
                 border-radius: 8px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+            video {
+                width: 100%;
+                height: auto;
+                max-height: 50vh;
+                object-fit: contain;
+            }
+            video::-webkit-media-controls-panel {
+                display: none !important;
+            }
+            video::-webkit-media-controls-play-button {
+                display: none !important;
+            }
+            video::-webkit-media-controls-start-playback-button {
+                display: none !important;
+            }
+            video::-webkit-media-controls-enclosure {
+                display: none !important;
+            }
+            video::-webkit-media-controls-timeline {
+                display: none !important;
+            }
+            video::-webkit-media-controls-fullscreen-button {
+                display: none !important;
+            }
+            video::-webkit-media-controls-current-time-display {
+                display: none !important;
+            }
+            video::-webkit-media-controls-time-remaining-display {
+                display: none !important;
+            }
+            video::-webkit-media-controls-mute-button {
+                display: none !important;
+            }
+            video::-webkit-media-controls-toggle-closed-captions-button {
+                display: none !important;
+            }
+            video::-webkit-media-controls-volume-slider {
+                display: none !important;
             }
             .no-download {
                 color: #ff6666;
@@ -300,7 +339,7 @@ function getMediaPreview(fileData) {
   if (mimeType.startsWith('image/')) {
     return `<img src="${fileUrl}" alt="${fileData.originalName}" oncontextmenu="return false;">`;
   } else if (mimeType.startsWith('video/')) {
-    return `<video controls><source src="${fileUrl}" type="${mimeType}"></video>`;
+    return `<video controls controlsList="nodownload" oncontextmenu="return false;"><source src="${fileUrl}" type="${mimeType}"></video>`;
   } else if (mimeType.startsWith('audio/')) {
     return `<audio controls><source src="${fileUrl}" type="${mimeType}"></audio>`;
   }
