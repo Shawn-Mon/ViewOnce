@@ -89,10 +89,8 @@ app.get('/view/:fileId', (req, res) => {
     return res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
   }
 
-  // Mark as viewed after 30 seconds (to allow time for sharing)
-  setTimeout(() => {
-    fileData.viewed = true;
-  }, 30000);
+  // Mark as viewed immediately (first time access)
+  fileData.viewed = true;
 
   // Check if file exists
   if (!fs.existsSync(fileData.path)) {
@@ -299,9 +297,8 @@ app.get('/view/:fileId', (req, res) => {
             </div>
             
             <div class="warning">
-                ⚠️ This file will be permanently deleted after 30 seconds or when you close this page. It cannot be accessed again.
+                ⚠️ This file will be permanently deleted when you close this page. It cannot be accessed again by anyone.
                 <br><small>💡 Double-click images/videos to enter fullscreen</small>
-                <br><small>⏱️ You have 30 seconds to share this link</small>
             </div>
             
             <div class="file-info">
@@ -393,52 +390,15 @@ app.get('/view/:fileId', (req, res) => {
             style.textContent = '@media print { body { display: none !important; } * { display: none !important; } }';
             document.head.appendChild(style);
             
-            // Auto-cleanup after page unload
+            // Auto-cleanup when first viewer closes tab
             window.addEventListener('beforeunload', function() {
                 fetch('/cleanup/${fileId}', { method: 'POST' });
             });
             
-            // Additional cleanup on page visibility change (with delay)
-            let cleanupTimeout;
-            let countdownInterval;
-            let timeLeft = 30;
-            
-            // Show countdown
-            function startCountdown() {
-                const warningDiv = document.querySelector('.warning');
-                timeLeft = 30;
-                
-                countdownInterval = setInterval(() => {
-                    timeLeft--;
-                    if (timeLeft >= 0) {
-                        const countdownText = document.querySelector('.warning small:last-child');
-                        if (countdownText) {
-                            countdownText.textContent = '⏱️ You have ' + timeLeft + ' seconds to share this link';
-                        }
-                    } else {
-                        clearInterval(countdownInterval);
-                    }
-                }, 1000);
-            }
-            
-            // Start countdown when page loads
-            startCountdown();
-            
+            // Auto-cleanup when page becomes hidden (tab switch)
             document.addEventListener('visibilitychange', function() {
                 if (document.visibilityState === 'hidden') {
-                    // Clear any existing timeout
-                    if (cleanupTimeout) {
-                        clearTimeout(cleanupTimeout);
-                    }
-                    // Wait 10 seconds before cleanup to allow link sharing
-                    cleanupTimeout = setTimeout(() => {
-                        fetch('/cleanup/${fileId}', { method: 'POST' });
-                    }, 10000);
-                } else if (document.visibilityState === 'visible') {
-                    // Cancel cleanup if user comes back to page
-                    if (cleanupTimeout) {
-                        clearTimeout(cleanupTimeout);
-                    }
+                    fetch('/cleanup/${fileId}', { method: 'POST' });
                 }
             });
         </script>
@@ -454,13 +414,14 @@ function getMediaPreview(fileData) {
   if (mimeType.startsWith('image/')) {
     return `<img src="${fileUrl}" alt="${fileData.originalName}" oncontextmenu="return false;" ondblclick="this.requestFullscreen()">`;
   } else if (mimeType.startsWith('video/')) {
-    return `<video controls controlsList="nodownload" oncontextmenu="return false;" ondblclick="this.requestFullscreen()"><source src="${fileUrl}" type="${mimeType}"></video>`;
+    return `<video controls controlsList="nodownload" oncontextmenu="return false;" ondblclick="this.requestFullscreen()" onloadedmetadata="this.currentTime=0;"><source src="${fileUrl}" type="${mimeType}"></video>`;
   } else if (mimeType.startsWith('audio/')) {
     return `<audio controls><source src="${fileUrl}" type="${mimeType}"></audio>`;
   }
   return '<p>Preview not available for this type.</p>';
 }
 
+// ... (rest of the code remains the same)
 app.get('/download/:fileId', (req, res) => {
   const fileId = req.params.fileId;
   const fileData = fileStore.get(fileId);
