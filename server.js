@@ -395,10 +395,23 @@ app.get('/view/:fileId', (req, res) => {
                 fetch('/cleanup/${fileId}', { method: 'POST' });
             });
             
-            // Additional cleanup on page visibility change
+            // Additional cleanup on page visibility change (with delay)
+            let cleanupTimeout;
             document.addEventListener('visibilitychange', function() {
                 if (document.visibilityState === 'hidden') {
-                    fetch('/cleanup/${fileId}', { method: 'POST' });
+                    // Clear any existing timeout
+                    if (cleanupTimeout) {
+                        clearTimeout(cleanupTimeout);
+                    }
+                    // Wait 10 seconds before cleanup to allow link sharing
+                    cleanupTimeout = setTimeout(() => {
+                        fetch('/cleanup/${fileId}', { method: 'POST' });
+                    }, 10000);
+                } else if (document.visibilityState === 'visible') {
+                    // Cancel cleanup if user comes back to page
+                    if (cleanupTimeout) {
+                        clearTimeout(cleanupTimeout);
+                    }
                 }
             });
         </script>
