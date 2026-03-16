@@ -298,6 +298,7 @@ app.get('/view/:fileId', (req, res) => {
             
             <div class="warning">
                 ⚠️ This file will be permanently deleted after you close this page. It cannot be accessed again.
+                <br><small>💡 Double-click images/videos to enter fullscreen</small>
             </div>
             
             <div class="file-info">
@@ -317,6 +318,78 @@ app.get('/view/:fileId', (req, res) => {
         </div>
         
         <script>
+            // Prevent screenshots and print screen
+            document.addEventListener('keydown', function(e) {
+                // Prevent print screen
+                if (e.key === 'PrintScreen' || e.keyCode === 44) {
+                    e.preventDefault();
+                    return false;
+                }
+                // Prevent F12 (developer tools)
+                if (e.key === 'F12' || e.keyCode === 123) {
+                    e.preventDefault();
+                    return false;
+                }
+                // Prevent Ctrl+Shift+I (developer tools)
+                if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                    e.preventDefault();
+                    return false;
+                }
+                // Prevent Ctrl+Shift+C (inspect element)
+                if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+            
+            // Clear clipboard on paste
+            document.addEventListener('paste', function(e) {
+                e.preventDefault();
+                return false;
+            });
+            
+            // Prevent right-click context menu
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
+            
+            // Prevent text selection
+            document.addEventListener('selectstart', function(e) {
+                e.preventDefault();
+                return false;
+            });
+            
+            // Prevent drag
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+                return false;
+            });
+            
+            // Clear console
+            console.clear();
+            
+            // Override console.log
+            console.log = function() {};
+            console.error = function() {};
+            console.warn = function() {};
+            console.info = function() {};
+            
+            // Hide page from print
+            window.addEventListener('beforeprint', function() {
+                document.body.style.display = 'none';
+            });
+            
+            // Show page after print dialog closes
+            window.addEventListener('afterprint', function() {
+                document.body.style.display = 'flex';
+            });
+            
+            // Prevent print with CSS
+            const style = document.createElement('style');
+            style.textContent = '@media print { body { display: none !important; } * { display: none !important; } }';
+            document.head.appendChild(style);
+            
             // Auto-cleanup after page unload
             window.addEventListener('beforeunload', function() {
                 fetch('/cleanup/${fileId}', { method: 'POST' });
@@ -339,9 +412,9 @@ function getMediaPreview(fileData) {
   const fileUrl = `/temp/${fileData.filename}`;
   
   if (mimeType.startsWith('image/')) {
-    return `<img src="${fileUrl}" alt="${fileData.originalName}" oncontextmenu="return false;">`;
+    return `<img src="${fileUrl}" alt="${fileData.originalName}" oncontextmenu="return false;" ondblclick="this.requestFullscreen()">`;
   } else if (mimeType.startsWith('video/')) {
-    return `<video controls controlsList="nodownload" oncontextmenu="return false;"><source src="${fileUrl}" type="${mimeType}"></video>`;
+    return `<video controls controlsList="nodownload" oncontextmenu="return false;" ondblclick="this.requestFullscreen()"><source src="${fileUrl}" type="${mimeType}"></video>`;
   } else if (mimeType.startsWith('audio/')) {
     return `<audio controls><source src="${fileUrl}" type="${mimeType}"></audio>`;
   }
