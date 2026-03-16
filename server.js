@@ -89,8 +89,10 @@ app.get('/view/:fileId', (req, res) => {
     return res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
   }
 
-  // Mark as viewed
-  fileData.viewed = true;
+  // Mark as viewed after 30 seconds (to allow time for sharing)
+  setTimeout(() => {
+    fileData.viewed = true;
+  }, 30000);
 
   // Check if file exists
   if (!fs.existsSync(fileData.path)) {
@@ -297,8 +299,9 @@ app.get('/view/:fileId', (req, res) => {
             </div>
             
             <div class="warning">
-                ⚠️ This file will be permanently deleted after you close this page. It cannot be accessed again.
+                ⚠️ This file will be permanently deleted after 30 seconds or when you close this page. It cannot be accessed again.
                 <br><small>💡 Double-click images/videos to enter fullscreen</small>
+                <br><small>⏱️ You have 30 seconds to share this link</small>
             </div>
             
             <div class="file-info">
@@ -397,6 +400,30 @@ app.get('/view/:fileId', (req, res) => {
             
             // Additional cleanup on page visibility change (with delay)
             let cleanupTimeout;
+            let countdownInterval;
+            let timeLeft = 30;
+            
+            // Show countdown
+            function startCountdown() {
+                const warningDiv = document.querySelector('.warning');
+                timeLeft = 30;
+                
+                countdownInterval = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft >= 0) {
+                        const countdownText = document.querySelector('.warning small:last-child');
+                        if (countdownText) {
+                            countdownText.textContent = '⏱️ You have ' + timeLeft + ' seconds to share this link';
+                        }
+                    } else {
+                        clearInterval(countdownInterval);
+                    }
+                }, 1000);
+            }
+            
+            // Start countdown when page loads
+            startCountdown();
+            
             document.addEventListener('visibilitychange', function() {
                 if (document.visibilityState === 'hidden') {
                     // Clear any existing timeout
