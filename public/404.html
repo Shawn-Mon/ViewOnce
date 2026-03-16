@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - ViewOnce File Not Found</title>
+    <style>
+        body {
+            font-family: 'hacked-font', 'Fira Code', 'Consolas', monospace;
+            background: #000;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        /* Custom font import */
+        @font-face {
+            font-family: 'hacked-font';
+            src: url('C:/Users/HP/Downloads/Compressed/hacked-font/Hacked-KerX.ttf') format('truetype');
+        }
+
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            background: radial-gradient(ellipse at center, rgba(0,20,0,0.8) 0%, rgba(0,0,0,1) 100%);
+        }
+
+        .matrix-column {
+            position: absolute;
+            top: -100%;
+            font-family: 'hacked-font', 'Fira Code', 'Consolas', monospace;
+            font-size: 12px;
+            color: #0f0;
+            text-shadow: 0 0 8px #0f0, 0 0 12px #0f0;
+            animation: matrix-fall linear infinite;
+            white-space: nowrap;
+            opacity: 0.8;
+        }
+
+        .matrix-column:nth-child(odd) {
+            color: #0f0;
+        }
+
+        .matrix-column:nth-child(even) {
+            color: #0a0;
+            text-shadow: 0 0 8px #0a0, 0 0 12px #0a0;
+        }
+
+        @keyframes matrix-fall {
+            0% {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(200vh);
+                opacity: 0;
+            }
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            background: linear-gradient(
+                to right,
+                transparent 50%,
+                rgba(0, 255, 0, 0.03) 50%
+            );
+            background-size: 4px 100%;
+            animation: scanlines-horizontal 8s linear infinite;
+        }
+
+        @keyframes scanlines-horizontal {
+            0% { background-position: 0 0; }
+            100% { background-position: 10px 0; }
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.1);
+            border: 2px solid #ff3333;
+            border-radius: 5px;
+            padding: 40px;
+            box-shadow: 
+                0 0 30px rgba(255, 51, 51, 0.4),
+                inset 0 0 30px rgba(255, 51, 51, 0.1),
+                0 0 60px rgba(255, 51, 51, 0.2);
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            text-align: center;
+        }
+
+        .error-code {
+            font-size: 6rem;
+            color: #ff3333;
+            text-shadow: 
+                0 0 20px #ff3333,
+                0 0 40px #ff3333,
+                0 0 60px #ff3333;
+            margin-bottom: 20px;
+            animation: error-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes error-pulse {
+            0%, 100% { 
+                opacity: 0.8;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 1;
+                transform: scale(1.05);
+            }
+        }
+
+        .error-title {
+            font-size: 2rem;
+            color: #ffffff;
+            text-shadow: 
+                0 0 15px #ff3333,
+                0 0 30px #ff3333;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .error-message {
+            font-size: 1.2rem;
+            color: #ff6666;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px #ff3333;
+        }
+
+        .back-link {
+            display: inline-block;
+            background: transparent;
+            color: #ffffff;
+            border: 2px solid #ff3333;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s;
+            font-family: 'hacked-font', 'Fira Code', 'Consolas', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .back-link:hover {
+            background: #ff3333;
+            color: #000;
+            box-shadow: 0 0 20px #ff3333;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="matrix-bg" id="matrixBg"></div>
+    <div class="scanlines"></div>
+    
+    <div class="container">
+        <div class="error-code">404</div>
+        <div class="error-title">File Not Found</div>
+        <div class="error-message">
+            The file you're looking for has been deleted or never existed.
+        </div>
+        <a href="/" class="back-link">← Back to Upload</a>
+    </div>
+
+    <script>
+        // Enhanced Matrix rain effect with more numbers
+        function createMatrixRain() {
+            const matrixBg = document.getElementById('matrixBg');
+            const columns = Math.floor(window.innerWidth / 12);
+            
+            for (let i = 0; i < columns; i++) {
+                const column = document.createElement('div');
+                column.className = 'matrix-column';
+                column.style.left = (i * 12) + 'px';
+                column.style.animationDuration = (Math.random() * 8 + 4) + 's';
+                column.style.animationDelay = Math.random() * 8 + 's';
+                
+                // More numbers and Japanese characters
+                const chars = '0123456789アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+                let text = '';
+                const length = Math.floor(Math.random() * 25) + 20;
+                for (let j = 0; j < length; j++) {
+                    text += chars[Math.floor(Math.random() * chars.length)] + '<br>';
+                }
+                column.innerHTML = text;
+                
+                matrixBg.appendChild(column);
+            }
+        }
+
+        createMatrixRain();
+
+        // Regenerate matrix rain on window resize
+        window.addEventListener('resize', () => {
+            const matrixBg = document.getElementById('matrixBg');
+            matrixBg.innerHTML = '';
+            createMatrixRain();
+        });
+    </script>
+</body>
+</html>
