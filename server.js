@@ -82,15 +82,13 @@ app.get('/view/:fileId', (req, res) => {
     return res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
   }
 
-  if (fileData.viewed) {
-    // Delete: file and remove from store
+  // CRITICAL: Only check if viewed, NEVER set it here
+  if (fileData.viewed === true) {
+    // Delete file and remove from store
     fs.remove(fileData.path).catch(console.error);
     fileStore.delete(fileId);
     return res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
   }
-
-  // Mark as viewed immediately (first time access)
-  fileData.viewed = true;
 
   // Check if file exists
   if (!fs.existsSync(fileData.path)) {
@@ -390,14 +388,16 @@ app.get('/view/:fileId', (req, res) => {
             style.textContent = '@media print { body { display: none !important; } * { display: none !important; } }';
             document.head.appendChild(style);
             
-            // Auto-cleanup when first viewer closes tab
+            // Auto-cleanup when first viewer closes tab (mark as viewed)
             window.addEventListener('beforeunload', function() {
+                fetch('/mark-viewed/${fileId}', { method: 'POST' });
                 fetch('/cleanup/${fileId}', { method: 'POST' });
             });
             
             // Auto-cleanup when page becomes hidden (tab switch)
             document.addEventListener('visibilitychange', function() {
                 if (document.visibilityState === 'hidden') {
+                    fetch('/mark-viewed/${fileId}', { method: 'POST' });
                     fetch('/cleanup/${fileId}', { method: 'POST' });
                 }
             });
@@ -414,7 +414,7 @@ function getMediaPreview(fileData) {
   if (mimeType.startsWith('image/')) {
     return `<img src="${fileUrl}" alt="${fileData.originalName}" oncontextmenu="return false;" ondblclick="this.requestFullscreen()">`;
   } else if (mimeType.startsWith('video/')) {
-    return `<video controls controlsList="nodownload" oncontextmenu="return false;" ondblclick="this.requestFullscreen()" onloadedmetadata="this.currentTime=0;"><source src="${fileUrl}" type="${mimeType}"></video>`;
+                return `<video controlsList="nodownload" oncontextmenu="return false;" ondblclick="this.requestFullscreen()" onloadedmetadata="this.currentTime=0;"><source src="${fileUrl}" type="${mimeType}"></video>`;
   } else if (mimeType.startsWith('audio/')) {
     return `<audio controls><source src="${fileUrl}" type="${mimeType}"></audio>`;
   }
@@ -441,6 +441,18 @@ app.get('/download/:fileId', (req, res) => {
       fileStore.delete(fileId);
     }
   });
+});
+
+// Mark file as viewed
+app.post('/mark-viewed/:fileId', (req, res) => {
+  const fileId = req.params.fileId;
+  const fileData = fileStore.get(fileId);
+  
+  if (fileData) {
+    fileData.viewed = true;
+  }
+  
+  res.json({ success: true });
 });
 
 // Cleanup route
